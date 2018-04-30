@@ -58,7 +58,7 @@ var gameMode = 0;
 var gameModes = [{
 	respawnTime:4000,
 	teams: [0]
-},{
+}, {
 	respawnTime: 6000,
 	teams: [1,2]
 }]
@@ -80,7 +80,8 @@ var weaponsList = {
 		speed:24,
 		bulletSize:16,
 		travelDistance:800,
-		attackType:1
+		attackType:1,
+		id: 0
 	},
 	shotgun:{
 		onHit:function(bullet,playerHit) {
@@ -122,7 +123,8 @@ var weaponsList = {
 		speed:30,
 		bulletSize:12,
 		travelDistance:275,
-		attackType:1
+		attackType:1,
+		id: 1
 	},
 	sniper:{
 		onHit:function(bullet,playerHit) {
@@ -138,7 +140,8 @@ var weaponsList = {
 		speed:27,
 		bulletSize:8,
 		travelDistance:2000,
-		attackType:1
+		attackType:1,
+		id: 2
 	},
 	machineGun:{
 		onHit:function(bullet,playerHit) {
@@ -154,7 +157,8 @@ var weaponsList = {
 		speed:27,
 		bulletSize:8,
 		travelDistance:550,
-		attackType:1
+		attackType:1,
+		id: 3
 	},
 	rocketLauncher:{
 		onHit:function(bullet,playerShoot) {
@@ -171,7 +175,8 @@ var weaponsList = {
 		bulletSize:24,
 		travelDistance:700,
 		damage:85,
-		attackType:2
+		attackType:2,
+		id: 4
 	},
 	jihad:{
 		shoot:function(shooter,cursor) {
@@ -188,7 +193,8 @@ var weaponsList = {
 			},weaponsList.jihad.shootInterval);
 		},
 		damage:130,
-		shootInterval:2000
+		shootInterval:2000,
+		id: 5
 	}
 }
 var bonusesList = {
@@ -566,39 +572,39 @@ function sendPlayerlistSecure () {
 					newListToSend[clients[c]] = {
 						x: curPlayer.x,
 						y: curPlayer.y,
-						width: curPlayer.width,
-						height: curPlayer.height,
-						health: curPlayer.health,
-						isJihad: curPlayer.isJihad,
-						isInvuln: curPlayer.isInvuln,
-						bonuses: curPlayer.bonuses,
-						weapon: curPlayer.curWeapon,
-						mouse: curPlayer.inputs.mousePos,
-						canAttack: curPlayer.canAttack,
-						alive: curPlayer.alive
+						w: curPlayer.width,
+						ht: curPlayer.height,
+						hl: curPlayer.health,
+						ij: curPlayer.isJihad,
+						ii: curPlayer.isInvuln,
+						b: curPlayer.bonuses,
+						wp: weaponsList[playerListSecure[p].curWeapon].id,
+						m: curPlayer.inputs.mousePos,
+						ca: curPlayer.canAttack,
+						a: curPlayer.alive
 					};
 				}	else if (playerListSecure[p].alive) {
 					var centerOfCheckPlayer = {
-						x:playerListSecure[p].x+playerListSecure[p].width/2,
-						y:playerListSecure[p].y+playerListSecure[p].height/2
+						x: playerListSecure[p].x + playerListSecure[p].width / 2,
+						y: playerListSecure[p].y + playerListSecure[p].height / 2
 					}
-					//To send the player, the player needs to be within 400 units left/right, and 300 units up/down
+					// To send the player, the player needs to be within 400 units left/right, and 300 units up/down
 					var extra = 50;
-					if (Math.abs(centerOfCurPlayer.x-centerOfCheckPlayer.x) <= canvas.width + (0.5 * playerListSecure[p].width+extra)) {
-						//User is in x proximity, check for y now
-						if (Math.abs(centerOfCurPlayer.y-centerOfCheckPlayer.y) <= canvas.height + (0.5 * playerListSecure[p].height+extra)) {
-							//User is in proximity, send
+					if (Math.abs(centerOfCurPlayer.x - centerOfCheckPlayer.x) <= canvas.width + (0.5 * playerListSecure[p].width + extra)) {
+						// User is in x proximity, check for y now
+						if (Math.abs(centerOfCurPlayer.y - centerOfCheckPlayer.y) <= canvas.height + (0.5 * playerListSecure[p].height + extra)) {
+							// User is in proximity, send
 							newListToSend[p] = {
-								x:playerListSecure[p].x,
-								y:playerListSecure[p].y,
-								width:playerListSecure[p].width,
-								height:playerListSecure[p].height,
-								health:playerListSecure[p].health,
-								isJihad:playerListSecure[p].isJihad,
-								isInvuln:playerListSecure[p].isInvuln,
-								bonuses:playerListSecure[p].bonuses,
-								weapon:playerListSecure[p].curWeapon,
-								mouse:playerListSecure[p].inputs.mousePos
+								x: playerListSecure[p].x,
+								y: playerListSecure[p].y,
+								w: playerListSecure[p].width,
+								ht: playerListSecure[p].height,
+								hl: playerListSecure[p].health,
+								ij: playerListSecure[p].isJihad,
+								ii: playerListSecure[p].isInvuln,
+								b: playerListSecure[p].bonuses,
+								wp: weaponsList[playerListSecure[p].curWeapon].id,
+								m: playerListSecure[p].inputs.mousePos
 							}
 						}
 					}
@@ -608,7 +614,7 @@ function sendPlayerlistSecure () {
 		}
 	}
 }
-function sendBulletList() {
+function sendBulletList () {
 	for (var c = 0; c < clients.length; c++) {
 		var newListToSend = [];
 		var curPlayer = playerListSecure[clients[c]];
@@ -646,7 +652,7 @@ function sendExplosionsList() {
 					newListToSend.push({
 						x:explosions[e].x,
 						y:explosions[e].y,
-						radius:explosions[e].curRadius
+						r:explosions[e].curRadius
 					});
 				}
 			}
@@ -655,7 +661,7 @@ function sendExplosionsList() {
 		io.sockets.connected[clients[c]].emit('send-explosions-info', newListToSend);
 	}
 }
-function sendBonusesList() {
+function sendBonusesList () {
 	for (var c = 0; c < clients.length; c++) {
 		var newListToSend = [];
 		var curPlayer = playerListSecure[clients[c]];
@@ -1147,7 +1153,7 @@ function playerRespawn(playerId) {
 }
 
 function updatePlayerScore(playerId) {
-	if (gameMode == 0) {
+	if (gameMode === 0) {
 		playerListOpen[playerId].score = playerListOpen[playerId].kills
 	}
 }
@@ -1316,9 +1322,9 @@ function update() {
 			curPlayer.canAttack = (Date.now() - curPlayer.lastAttack.time >= weaponsList[curPlayer.lastAttack.weapon].shootInterval);
 		}
 
-		//Shooting
+		// Shooting
 		if (curPlayer.alive && curPlayer.inputs.mouseDown && curPlayer.canAttack) {
-			//Player can shoot!
+			// Player can shoot!
 			curPlayer.lastAttack.time = Date.now();
 			curPlayer.lastAttack.weapon = curPlayer.curWeapon;
 			attackWithWeapon(p);
@@ -1334,7 +1340,7 @@ function update() {
 			if (explosions[e].curRadius > explosions[e].fullRadius) {
 				explosions[e].curRadius = explosions[e].fullRadius;
 			}
-			//Check Collision
+			// Check Collision
 			for (var p in playerListSecure) {
 
 				if (playerCanDamagePlayer(explosions[e].source,p)) {
@@ -1373,7 +1379,7 @@ function update() {
 	}
 	explosions = tempExplosions;
 
-	//Delete the inactive bonuses
+	// Delete the inactive bonuses
 	var tempBonuses = [];
 	for (var b = 0; b < bonuses.length; b++) {
 		if (bonuses[b].active) {
@@ -1402,58 +1408,58 @@ function logPlayers() {
 
 io.on('connection', function (socket) {
 	var userId = socket.id;
-	socket.on('enter-game',function(name) {
+	socket.on('enter-game', function (name) {
 		socket.emit('your-id', userId);
 		socket.emit('send-basic-player-info', playerListOpen);
 		socket.emit('send-bonuses-info', bonuses);
-		createNewPlayer(userId,name);
+		createNewPlayer(userId, name);
 		clients.push(userId);
-		if (playersSinceLastLog==0) logPlayers()
+		if (playersSinceLastLog === 0) logPlayers()
 		playersSinceLastLog++;
 	});
-	socket.on('request-map',function(){
-		io.emit('send-map',maps[currentMap].name,maps[currentMap].map,maps[currentMap].extrMap,maps[currentMap].bgcolor,gameMode);
+	socket.on('request-map', function () {
+		io.emit('send-map', maps[currentMap].name, maps[currentMap].map, maps[currentMap].extrMap, maps[currentMap].bgcolor, gameMode);
 	})
-	socket.on('send-chat-message',function(msg) {
-		io.emit('get-chat-message',userId,msg);
+	socket.on('send-chat-message', function (msg) {
+		io.emit('get-chat-message', userId,msg);
 	});
-	//Input
-	socket.on('move-left',function(data){
+	// Input
+	socket.on('move-left', function (data){
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveLeft = data;
 		}
 	})
-	socket.on('move-right',function(data){
+	socket.on('move-right', function( data){
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveRight = data;
 		}
 	})
-	socket.on('move-up',function(data){
+	socket.on('move-up', function (data) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveUp = data;
 		}
 	})
-	socket.on('move-down',function(data){
+	socket.on('move-down', function (data) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveDown = data;
 		}
 	})
-	socket.on('mouse-down', function(md) {
+	socket.on('mouse-down', function (md) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.mouseDown = md;
 		}
 	})
-	socket.on('new-mouse-pos', function(mpos) {
+	socket.on('new-mouse-pos', function (mpos) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.mousePos = mpos;
 		}
 	});
-	socket.on('swap-weapon', function(name) {
+	socket.on('swap-weapon', function (name) {
 		if (playerListSecure[userId]) {
 			if (weaponsList[name]) {
 				playerListSecure[userId].curWeapon = name;
-				socket.emit('new-weapon',name)
-			}else{
+				socket.emit('new-weapon', name)
+			} else {
 				console.log('player used illegal weapon: ' + name);
 			}
 		}
@@ -1468,7 +1474,7 @@ io.on('connection', function (socket) {
 
 	socket.on('pang', function () {
 		socket.emit('peng');
-	})
+	});
 
 	socket.on('disconnect', function () {
 		if (playerListOpen[userId] && playerListSecure[userId]) {

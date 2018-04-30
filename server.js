@@ -184,9 +184,9 @@ var weaponsList = {
 			setTimeout(function() {
 				if (playerListSecure[shooter]) {
 					if (playerListSecure[shooter].alive) {
-						createExplosion(playerListSecure[shooter].x+playerListSecure[shooter].width*0.5,playerListSecure[shooter].y+playerListSecure[shooter].height*0.5,300,75,200,shooter,'jihad',weaponsList.jihad.damage);
+						createExplosion(playerListSecure[shooter].x + playerListSecure[shooter].width*0.5,playerListSecure[shooter].y+playerListSecure[shooter].height*0.5,300,75,200,shooter,'jihad',weaponsList.jihad.damage);
 						playerListSecure[shooter].curWeapon = 'rifle';
-						io.sockets.connected[shooter].emit('new-weapon','rifle');
+						io.sockets.connected[shooter].emit('new-weapon', 'rifle');
 						suicidePlayer(shooter);
 					}
 				}
@@ -550,8 +550,8 @@ function loadRandomMap() {
 }
 
 var clients = [];
-var playerListSecure = {}; //Player list secure contains information such as x position, y position, Information that is only sent to users in close proximity to avoid cheating.
-var playerListOpen = {}; //Player list open contains information such as username, color, team, etc. Information that is available to all users, all the time.
+var playerListSecure = {}; // Player list secure contains information such as x position, y position, Information that is only sent to users in close proximity to avoid cheating.
+var playerListOpen = {}; // Player list open contains information such as username, color, team, etc. Information that is available to all users, all the time.
 
 function sendOpenPlayerList () {
 	io.emit('send-basic-player-info', playerListOpen);
@@ -1132,7 +1132,7 @@ function checkExplosionCollision(explosion,player) {
 }
 
 function playerRespawn(playerId) {
-	if (gameMode == 0 || gameMode == 1) {
+	if (gameMode === 0 || gameMode === 1) {
 		var spawnPosition = getNewSpawnPosition(playerId);
 		playerListSecure[playerId].x = spawnPosition.x;
 		playerListSecure[playerId].y = spawnPosition.y;
@@ -1144,51 +1144,51 @@ function playerRespawn(playerId) {
 		playerListSecure[playerId].isJihad = false;
 		playerListSecure[playerId].isInvuln = true;
 		playerListSecure[playerId].canAttack = true;
-		setTimeout(function(){
+		setTimeout(function () {
 			if (playerListSecure[playerId]) {
 				playerListSecure[playerId].isInvuln = false;
 			}
-		},2500);
+		}, 2500);
 	}
 }
 
-function updatePlayerScore(playerId) {
+function updatePlayerScore (playerId) {
 	if (gameMode === 0) {
-		playerListOpen[playerId].score = playerListOpen[playerId].kills
+		playerListOpen[playerId].score = playerListOpen[playerId].kills;
 	}
 }
 
-function playerDie(killer,killed,weapon) {
-	playerListSecure[killed].alive=false;
+function playerDie (killer, killed, weapon) {
+	playerListSecure[killed].alive = false;
 	playerListOpen[killed].deaths++;
-	if (killer != killed) {
+	if (killer !== killed) {
 		playerListOpen[killer].kills++;
 	}
 	updatePlayerScore(killer);
 	updatePlayerScore(killed);
-	io.emit('player-killed',killer,killed,weapon);
-	io.sockets.connected[killed].emit('death',gameModes[gameMode].respawnTime);
-	setTimeout(function() {
+	io.emit('player-killed', killer, killed, weapon);
+	io.sockets.connected[killed].emit('death', gameModes[gameMode].respawnTime);
+	setTimeout(function () {
 		if (playerListSecure[killed]) {
-			playerListSecure[killed].health=teams[playerListOpen[killed].team].defaultVars.health;
+			playerListSecure[killed].health = teams[playerListOpen[killed].team].defaultVars.health;
 			playerRespawn(killed);
 		}
-	},gameModes[gameMode].respawnTime);
+	}, gameModes[gameMode].respawnTime);
 }
 
-function damagePlayer(damage,source,weapon,playerHit) {
+function damagePlayer (damage, source, weapon, playerHit) {
 	if (!playerListSecure[playerHit].isInvuln) {
 		playerListSecure[playerHit].health -= damage * playerListSecure[source].modifiers.damage;
 		if (playerListSecure[playerHit].health <= 0) {
-			playerDie(source,playerHit,weapon);
+			playerDie(source, playerHit, weapon);
 		}
 	}
 }
 
-function update() {
-	var sendBullets = bullets.length>0?true:false;
-	var sendBonuses = bonuses.length>0?true:false;
-	var sendExplosions = explosions.length>0?true:false;
+function update () {
+	var sendBullets = bullets.length > 0;
+	var sendBonuses = bonuses.length > 0;
+	var sendExplosions = explosions.length > 0;
 
 	for (var bt = 0; bt < bullets.length; bt++) {
 		//Bullet movements
@@ -1199,13 +1199,13 @@ function update() {
 		for (var b = 0; b < bColBlocks.length; b++) {
 			if (bullets[bt].active) {
 				if (testBulletCollision({
-					x:bullets[bt].x,
-					y:bullets[bt].y,
-					width:weaponsList[bullets[bt].weapon].bulletSize,
-					height:weaponsList[bullets[bt].weapon].bulletSize,
-					spdx:bullets[bt].spdx,
-					spdy:bullets[bt].spdy
-				},bColBlocks[b])) {
+					x: bullets[bt].x,
+					y: bullets[bt].y,
+					width: weaponsList[bullets[bt].weapon].bulletSize,
+					height: weaponsList[bullets[bt].weapon].bulletSize,
+					spdx: bullets[bt].spdx,
+					spdy: bullets[bt].spdy
+				}, bColBlocks[b])) {
 					if (weaponsList[bullets[bt].weapon].attackType == 2) {
 							weaponsList[bullets[bt].weapon].onHit(bullets[bt],bullets[bt].source);
 					}
@@ -1485,4 +1485,4 @@ io.on('connection', function (socket) {
 
 setInterval(update, 1000 / 45); // 45 fps server side
 setInterval(createBonus, 20000); // Create a bonus every 20 seconds
-setInterval(sendOpenPlayerList, 10000); // Every 10 seconds, lets make sure we are synced
+// setInterval(sendOpenPlayerList, 10000); // Every 10 seconds, lets make sure we are synced

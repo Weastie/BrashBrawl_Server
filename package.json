@@ -1,0 +1,27 @@
+{
+  "name": "brashbrawl_server",
+  "version": "1.0.0",
+  "description": "Server for brashbrawl",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "socket.io": "^1.7.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Weastie/BrashBrawl_Server.git"
+  },
+  "author": "Weastie",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Weastie/BrashBrawl_Server/issues"
+  },
+  "homepage": "https://github.com/Weastie/BrashBrawl_Server#readme"
+}

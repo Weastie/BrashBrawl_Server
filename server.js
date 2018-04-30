@@ -26,41 +26,44 @@ Game modes:
 0 = Free for all
 1 = Team Deathmatch
 */
-var teams = [{
+var teams = [
+	{
 		numPlayers: 0,
 		kills: 0,
-		defaultVars:{
-			health:100,
-			size:32,
-			speed:9
+		defaultVars: {
+			health: 100,
+			size: 32,
+			speed: 9
 		}
-	},{
-		numPlayers:0,
-		kills:0,
-		defaultVars:{
-			health:100,
-			size:32,
-			speed:9
+	}, {
+		numPlayers: 0,
+		kills: 0,
+		defaultVars: {
+			health: 100,
+			size: 32,
+			speed: 9
 		}
-	},{
-		numPlayers:0,
-		kills:0,
-		defaultVars:{
-			health:100,
-			size:32,
-			speed:9
+	}, {
+		numPlayers: 0,
+		kills: 0,
+		defaultVars: {
+			health: 100,
+			size: 32,
+			speed: 9
 		}
-	},
-]
+	}
+];
+
 var gameMode = 0;
 var gameModes = [{
 	respawnTime:4000,
-	teams:[0]
+	teams: [0]
 },{
-	respawnTime:6000,
-	teams:[1,2]
+	respawnTime: 6000,
+	teams: [1,2]
 }]
 var playersSinceLastLog = 0;
+
 //Weapons set up
 var weaponsList = {
 	rifle:{
@@ -237,7 +240,7 @@ var explosions = [];
 var bonuses = [];
 var spawnPoints = [[],[],[],[],[],[],[],[]];
 
-function getTileProperties(tile) {
+function getTileProperties (tile) {
 	var properties = {
 		collidePlayer: false,
 		collideBullet: false
@@ -298,7 +301,7 @@ function loadmaps() {
 			};
 			for (var i = 0; i < lines.length; i++) {
 				if (lines[i] === 'x') {
-					//Done current map
+					// Done current map
 					maps[curMap.name] = curMap;
 					mapNames.push(curMap.name);
 					curMap = {
@@ -322,18 +325,18 @@ function loadmaps() {
 					else if (split[0] === 'map') {
 						var mapToParse = split[1].split('|');
 						var extraId = 0;
-						for (var j = 0; j < mapToParse.length;j++) {
+						for (var j = 0; j < mapToParse.length; j++) {
 							var curMapLine = [];
 							var curColMapLine = [];
 							var indivs = mapToParse[j].split(',');
 							for (var k = 0; k < indivs.length; k++) {
 								var indiv = indivs[k].split('/');
-								var tileProps = getTileProperties(indiv[0]);
-								if (Number(indiv[1]) != 0) {
+								var tileProps = getTileProperties(Number(indiv[0]));
+								if (Number(indiv[1]) !== 0) {
 									curMap.extrMap[extraId] = {
-										extra:Number(indiv[1]),
-										x:curMapLine.length,
-										y:curMap.map.length
+										extra: Number(indiv[1]),
+										x: curMapLine.length,
+										y: curMap.map.length
 									}
 									var extraProps = getExtraProperties(indiv[1]);
 									if (extraProps.isSpawnPoint) {
@@ -341,7 +344,7 @@ function loadmaps() {
 									}
 									else if (extraProps.isBonusPoint) {
 										curMap.bonusPoints.push({
-											id:extraId
+											id: extraId
 										});
 									}
 
@@ -357,7 +360,7 @@ function loadmaps() {
 									}
 									extraId++;
 								}
-								curColMapLine.push([tileProps.collidePlayer,tileProps.collideBullet]);
+								curColMapLine.push([tileProps.collidePlayer, tileProps.collideBullet]);
 								curMapLine.push(Number(indiv[0]));
 							}
 							curMap.map.push(curMapLine);
@@ -367,7 +370,7 @@ function loadmaps() {
 						curMap.height = curMap.map.length*blockSize;
 					}
 				}else{
-					//Empty line means we done
+					// Empty line means we done
 				}
 			}
 			mapsReady = true;
@@ -503,7 +506,7 @@ function getCollisionOfExtra(extra,oldx,oldy) {
 
 function loadMap(map) {
 	var curMap = maps[map];
-	//Setup blocks
+	// Setup blocks
 	for (var i = 0; i < curMap.colMap.length; i++) {
 		for (var j = 0; j < curMap.colMap[i].length; j++) {
 			if (curMap.colMap[i][j][0]) {
@@ -544,37 +547,37 @@ var clients = [];
 var playerListSecure = {}; //Player list secure contains information such as x position, y position, Information that is only sent to users in close proximity to avoid cheating.
 var playerListOpen = {}; //Player list open contains information such as username, color, team, etc. Information that is available to all users, all the time.
 
-function sendOpenPlayerList() {
+function sendOpenPlayerList () {
 	io.emit('send-basic-player-info', playerListOpen);
-}
-function sendPlayerlistSecure() {
+};
+
+function sendPlayerlistSecure () {
 	for (var c = 0; c < clients.length; c++) {
 		var newListToSend = {};
 		var curPlayer = playerListSecure[clients[c]];
 		if (typeof curPlayer !== 'undefined') {
 			var centerOfCurPlayer = {
-				x:curPlayer.x+curPlayer.width/2,
-				y:curPlayer.y+curPlayer.height/2
-			}
+				x: curPlayer.x + curPlayer.width / 2,
+				y: curPlayer.y + curPlayer.height / 2
+			};
 			for (var p in playerListSecure) {
 				if (p === clients[c]) {
-					//Always send yo' self
+					// Always send yo' self
 					newListToSend[clients[c]] = {
-						x:curPlayer.x,
-						y:curPlayer.y,
-						width:curPlayer.width,
-						height:curPlayer.height,
-						health:curPlayer.health,
-						isJihad:curPlayer.isJihad,
-						isInvuln:curPlayer.isInvuln,
-						bonuses:curPlayer.bonuses,
-						weapon:curPlayer.curWeapon,
-						mouse:curPlayer.inputs.mousePos,
-						canAttack:curPlayer.canAttack,
-						alive:curPlayer.alive
-					}
-				}
-				else if (playerListSecure[p].alive) {
+						x: curPlayer.x,
+						y: curPlayer.y,
+						width: curPlayer.width,
+						height: curPlayer.height,
+						health: curPlayer.health,
+						isJihad: curPlayer.isJihad,
+						isInvuln: curPlayer.isInvuln,
+						bonuses: curPlayer.bonuses,
+						weapon: curPlayer.curWeapon,
+						mouse: curPlayer.inputs.mousePos,
+						canAttack: curPlayer.canAttack,
+						alive: curPlayer.alive
+					};
+				}	else if (playerListSecure[p].alive) {
 					var centerOfCheckPlayer = {
 						x:playerListSecure[p].x+playerListSecure[p].width/2,
 						y:playerListSecure[p].y+playerListSecure[p].height/2
@@ -759,7 +762,7 @@ function deletePlayer(playerId) {
 	delete playerListOpen[playerId];
 	delete playerListSecure[playerId];
 	io.emit('delete-player',playerId);
-	//Delete from clients
+	// Delete from clients
 	var newClients = [];
 	for (var c = 0; c < clients.length; c++) {
 		if (clients[c] !== playerId) {
@@ -769,31 +772,31 @@ function deletePlayer(playerId) {
 	clients = newClients;
 }
 
-function getNewSpawnPosition(playerId) {
+function getNewSpawnPosition (playerId) {
 	var ready = false;
 	var team = playerListOpen[playerId].team;
 	var curSpawnpointArea = spawnPoints[team];
 	while (!ready) {
-		var curPoint = curSpawnpointArea[Math.floor(Math.random()*curSpawnpointArea.length)];
+		var curPoint = curSpawnpointArea[Math.floor(Math.random() * curSpawnpointArea.length)];
 		var boundingBox = {
-			x:maps[currentMap].extrMap[curPoint].x*blockSize,
-			y:maps[currentMap].extrMap[curPoint].y*blockSize,
-			width:playerListSecure[playerId].width,
-			height:playerListSecure[playerId].height
+			x: maps[currentMap].extrMap[curPoint].x * blockSize,
+			y: maps[currentMap].extrMap[curPoint].y * blockSize,
+			width: playerListSecure[playerId].width,
+			height: playerListSecure[playerId].height
 		}
-		boundingBox.x += (blockSize/2)-(playerListSecure[playerId].width/2);
-		boundingBox.y += (blockSize/2)-(playerListSecure[playerId].height/2);
+		boundingBox.x += (blockSize / 2) - (playerListSecure[playerId].width / 2);
+		boundingBox.y += (blockSize / 2) - (playerListSecure[playerId].height / 2);
 		var ready = true;
 		for (var p in playerListSecure) {
-			if (testCollision(boundingBox,playerListSecure[p])) {
+			if (testCollision(boundingBox, playerListSecure[p])) {
 				ready = false;
 				break;
 			}
 		}
 		if (ready) {
 			return {
-				x:boundingBox.x,
-				y:boundingBox.y
+				x: boundingBox.x,
+				y: boundingBox.y
 			}
 		}
 	}
@@ -802,11 +805,11 @@ function getNewBonusPosition() {
 	if (gameMode == 0 || gameMode == 1) {
 		var ready = false;
 		while (!ready) {
-			var posx = Math.floor(Math.random()*maps[currentMap].width);
-			var posy = Math.floor(Math.random()*maps[currentMap].height);
+			var posx = Math.floor(Math.random() * maps[currentMap].width);
+			var posy = Math.floor(Math.random() * maps[currentMap].height);
 			ready = true;
 			for (var b = 0; b < pColBlocks.length; b++) {
-				if (testCollision(pColBlocks[b],{x:posx,y:posy,width:24,height:24})) {
+				if (testCollision(pColBlocks[b], {x: posx, y: posy, width: 24, height: 24})) {
 					ready = false;
 				}
 			}
@@ -818,43 +821,47 @@ function getNewBonusPosition() {
 				}
 			}
 		}
-		return {x:posx,y:posy};
+		return {x: posx, y: posy};
 	}
 }
 
-function createBonus() {
-	//Get number of players
-	for (var i = 0; i < Math.floor((clients.length)/2); i++) {
-		var loc = getNewBonusPosition();
-		//Get size of bonuses
-		var bc = '';
-		var size = 0;
-		for (var b in bonusesList) {
-			if (bonusesList.hasOwnProperty(b)) {
-
-				size++;
+function createBonus () {
+	// Never have more bonuses on the map than 2.5 times the number of players
+	if (bonuses.length <= clients.length * 2.5) {
+		// Number of bonuses spawned proportional to 1/2 number of players (round up)
+		for (var i = 0; i < Math.ceil((clients.length) / 2); i++) {
+			var loc = getNewBonusPosition();
+			var bc = '';
+			// Get size of bonuses
+			var size = 0;
+			for (let b in bonusesList) {
+				if (bonusesList.hasOwnProperty(b)) {
+					size++;
+				}
 			}
-		}
-		var random = Math.floor(Math.random()*size);
-		var counter = 0;
-		for (var b in bonusesList) {
-			if (counter==random) {
-				bc = b;
-			}
-			counter++;
-		}
 
-		bonuses.push({
-			bonus:bc,
-			x:loc.x,
-			y:loc.y,
-			width:24,
-			height:24,
-			active:true
-		});
+			var random = Math.floor(Math.random() * size);
+			var counter = 0;
+			for (let b in bonusesList) {
+				if (counter === random) {
+					bc = b;
+				}
+				counter++;
+			}
+
+			bonuses.push({
+				bonus: bc,
+				x: loc.x,
+				y: loc.y,
+				width: 24,
+				height: 24,
+				active: true
+			});
+		}
+		sendBonusesList();
 	}
-	sendBonusesList();
 }
+
 function createExplosion(x,y,radius,startradius,time,source,weapon,damage) {
 	explosions.push({
 		x:x,
@@ -1018,14 +1025,13 @@ function movePlayerClose(player1,player2) {
 	else if (player1.x+player1.width < player2.x){
 		player1.x	= (player2.x) - player1.width - 0.25;
 	}
-	if (player1.y > player2.y+player2.height) {
+	if (player1.y > player2.y + player2.height) {
 		player1.y	= (player2.y) + player2.height + 0.25;
 	}
 	else if (player1.y+player1.height < player2.y){
 		player1.y	= (player2.y) - player1.height - 0.25;
 	}
 	return {
-
 		x:player1.x,
 		y:player1.y
 	}
@@ -1452,7 +1458,7 @@ io.on('connection', function (socket) {
 			}
 		}
 	});
-	socket.on('use', function() {
+	socket.on('use', function () {
 		if (playerListSecure[userId]) {
 			if (playerListSecure[userId].alive) {
 				use(playerListSecure[userId]);
@@ -1460,17 +1466,17 @@ io.on('connection', function (socket) {
 		}
 	});
 
-	socket.on('pang', function() {
+	socket.on('pang', function () {
 		socket.emit('peng');
 	})
 
-	socket.on('disconnect', function() {
+	socket.on('disconnect', function () {
 		if (playerListOpen[userId] && playerListSecure[userId]) {
 			deletePlayer(userId);
 		}
 	});
 });
 
-setInterval(update,1000/45); //45 fps like a	semi-god
-setInterval(createBonus,20000);
-setInterval(sendOpenPlayerList,10000); //Every 10 seconds, lets make sure we are synced
+setInterval(update, 1000 / 45); // 45 fps server side
+setInterval(createBonus, 20000); // Create a bonus every 20 seconds
+setInterval(sendOpenPlayerList, 10000); // Every 10 seconds, lets make sure we are synced

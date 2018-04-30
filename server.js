@@ -64,13 +64,13 @@ var gameModes = [{
 }]
 var playersSinceLastLog = 0;
 
-//Weapons set up
+// Weapons set up
 var weaponsList = {
-	rifle:{
-		onHit:function(bullet,playerHit) {
-			damagePlayer(20,bullet.source,'rifle',playerHit);
+	rifle: {
+		onHit: function (bullet, playerHit) {
+			damagePlayer(20, bullet.source, 'rifle', playerHit);
 		},
-		shoot:function(shooter,cursor) {
+		shoot: function (shooter, cursor) {
 			var distance = Math.sqrt((cursor.x - canvas.width/2)*(cursor.x - canvas.width/2) + (cursor.y - canvas.height/2)*(cursor.y - canvas.height/2));
 			var spdx = (cursor.x - canvas.width/2)/distance * weaponsList.rifle.speed;
 			var spdy = (cursor.y - canvas.height/2)/distance * weaponsList.rifle.speed;
@@ -97,18 +97,18 @@ var weaponsList = {
 				x:cursor.x,
 				y:cursor.y
 			};
-			//Get distance from point to circle;
+			// Get distance from point to circle;
 			var distX = point.x-circle.x;
 			var distY = point.y-circle.y;
-			//Scale circle and the points.
-			distX *= (2/circle.radius);
-			distY *= (2/circle.radius);
-			circle.radius *= (2/circle.radius);
+			// Scale circle and the points.
+			distX *= (2 / circle.radius);
+			distY *= (2 / circle.radius);
+			circle.radius *= (2 / circle.radius);
 
 			point.x = distX + circle.x;
 			point.y = distY + circle.y;
 
-			//We will use an angle of 0.08
+			// We will use an angle of 0.08
 			var curAngle = Math.atan2(point.y-circle.y,point.x-circle.x);
 			for (var i = 1; i <= 10; i++) {
 				var newX = circle.x + circle.radius*Math.cos(curAngle+0.08*(i-5));
@@ -119,11 +119,11 @@ var weaponsList = {
 				createBullet(shooter,spdx,spdy)
 			}
 		},
-		shootInterval:650,
-		speed:30,
-		bulletSize:12,
-		travelDistance:275,
-		attackType:1,
+		shootInterval: 650,
+		speed: 30,
+		bulletSize: 12,
+		travelDistance: 275,
+		attackType: 1,
 		id: 1
 	},
 	sniper:{
@@ -553,9 +553,9 @@ var clients = [];
 var playerListSecure = {}; // Player list secure contains information such as x position, y position, Information that is only sent to users in close proximity to avoid cheating.
 var playerListOpen = {}; // Player list open contains information such as username, color, team, etc. Information that is available to all users, all the time.
 
-function sendOpenPlayerList () {
-	io.emit('send-basic-player-info', playerListOpen);
-};
+// function sendOpenPlayerList () {
+// 	io.emit('send-basic-player-info', playerListOpen);
+// };
 
 function sendPlayerlistSecure () {
 	for (var c = 0; c < clients.length; c++) {
@@ -569,43 +569,55 @@ function sendPlayerlistSecure () {
 			for (var p in playerListSecure) {
 				if (p === clients[c]) {
 					// Always send yo' self
-					newListToSend[clients[c]] = {
-						x: curPlayer.x,
-						y: curPlayer.y,
-						w: curPlayer.width,
-						ht: curPlayer.height,
-						hl: curPlayer.health,
-						ij: curPlayer.isJihad,
-						ii: curPlayer.isInvuln,
-						b: curPlayer.bonuses,
-						wp: weaponsList[playerListSecure[p].curWeapon].id,
-						m: curPlayer.inputs.mousePos,
-						ca: curPlayer.canAttack,
-						a: curPlayer.alive
-					};
+					newListToSend[clients[c]] = [
+						Math.round(curPlayer.x),
+						Math.round(curPlayer.y),
+						curPlayer.width,
+						curPlayer.height,
+						curPlayer.health,
+						curPlayer.isJihad ? 1 : 0, // 1 and 0 take less bytes than "true" or "false"
+						curPlayer.isInvuln ? 1 : 0, // 1 and 0 take less bytes than "true" or "false"
+						[ // Compress bonuses
+							curPlayer.bonuses.speed.present ? 1 : 0,
+							curPlayer.bonuses.damage.present ? 1 : 0
+						],
+						weaponsList[playerListSecure[p].curWeapon].id,
+						[ // Compress mouse pos
+							curPlayer.inputs.mousePos.x,
+							curPlayer.inputs.mousePos.y
+						],
+						curPlayer.canAttack ? 1 : 0,
+						curPlayer.alive ? 1 : 0
+					];
 				}	else if (playerListSecure[p].alive) {
 					var centerOfCheckPlayer = {
 						x: playerListSecure[p].x + playerListSecure[p].width / 2,
 						y: playerListSecure[p].y + playerListSecure[p].height / 2
-					}
+					};
 					// To send the player, the player needs to be within 400 units left/right, and 300 units up/down
 					var extra = 50;
 					if (Math.abs(centerOfCurPlayer.x - centerOfCheckPlayer.x) <= canvas.width + (0.5 * playerListSecure[p].width + extra)) {
 						// User is in x proximity, check for y now
 						if (Math.abs(centerOfCurPlayer.y - centerOfCheckPlayer.y) <= canvas.height + (0.5 * playerListSecure[p].height + extra)) {
 							// User is in proximity, send
-							newListToSend[p] = {
-								x: playerListSecure[p].x,
-								y: playerListSecure[p].y,
-								w: playerListSecure[p].width,
-								ht: playerListSecure[p].height,
-								hl: playerListSecure[p].health,
-								ij: playerListSecure[p].isJihad,
-								ii: playerListSecure[p].isInvuln,
-								b: playerListSecure[p].bonuses,
-								wp: weaponsList[playerListSecure[p].curWeapon].id,
-								m: playerListSecure[p].inputs.mousePos
-							}
+							newListToSend[p] = [
+								Math.round(curPlayer.x),
+								Math.round(curPlayer.y),
+								curPlayer.width,
+								curPlayer.height,
+								curPlayer.health,
+								curPlayer.isJihad,
+								curPlayer.isInvuln,
+								[ // Compress bonuses
+									curPlayer.bonuses.speed.present ? 1 : 0,
+									curPlayer.bonuses.damage.present ? 1 : 0
+								],
+								weaponsList[playerListSecure[p].curWeapon].id,
+								[ // Compress mouse pos
+									curPlayer.inputs.mousePos.x,
+									curPlayer.inputs.mousePos.y
+								]
+							];
 						}
 					}
 				}
@@ -619,41 +631,46 @@ function sendBulletList () {
 		var newListToSend = [];
 		var curPlayer = playerListSecure[clients[c]];
 		var centerOfCurPlayer = {
-			x:curPlayer.x+curPlayer.width/2,
-			y:curPlayer.y+curPlayer.height/2
-		}
+			x: curPlayer.x + curPlayer.width / 2,
+			y: curPlayer.y + curPlayer.height / 2
+		};
 		for (var b = 0; b < bullets.length; b++) {
 			var centerOfBullet = {
-				x:bullets[b].x+weaponsList[bullets[b].weapon].bulletSize,
-				y:bullets[b].y+weaponsList[bullets[b].weapon].bulletSize
-			}
-			//Only send the bullet if the bullet will be on the user's screen
-			if (Math.abs(centerOfCurPlayer.x-centerOfBullet.x) <= canvas.width + (0.5 * weaponsList[bullets[b].weapon].bulletSize)) {
-				//User is in x proximity, check for y now
-				if (Math.abs(centerOfCurPlayer.y-centerOfBullet.y) <= canvas.height + (0.5 * weaponsList[bullets[b].weapon].bulletSize)) {
-					newListToSend.push(bullets[b]);
+				x: bullets[b].x + weaponsList[bullets[b].weapon].bulletSize,
+				y: bullets[b].y + weaponsList[bullets[b].weapon].bulletSize
+			};
+			// Only send the bullet if the bullet will be on the user's screen
+			if (Math.abs(centerOfCurPlayer.x - centerOfBullet.x) <= canvas.width + (0.5 * weaponsList[bullets[b].weapon].bulletSize)) {
+				// User is in x proximity, check for y now
+				if (Math.abs(centerOfCurPlayer.y - centerOfBullet.y) <= canvas.height + (0.5 * weaponsList[bullets[b].weapon].bulletSize)) {
+					// newListToSend.push(bullets[b]);
+					newListToSend.push([
+						Math.round(bullets[b].x),
+						Math.round(bullets[b].y),
+						weaponsList[bullets[b].weapon].id
+					]);
 				}
 			}
 		}
 		io.sockets.connected[clients[c]].emit('send-bullet-info', newListToSend);
 	}
 }
-function sendExplosionsList() {
+function sendExplosionsList () {
 	for (var c = 0; c < clients.length; c++) {
 		var newListToSend = [];
 		var curPlayer = playerListSecure[clients[c]];
 		var centerOfCurPlayer = {
-			x:curPlayer.x+curPlayer.width/2,
-			y:curPlayer.y+curPlayer.height/2
+			x: curPlayer.x + curPlayer.width / 2,
+			y: curPlayer.y + curPlayer.height / 2
 		};
 		for (var e = 0; e < explosions.length; e++) {
-			if (Math.abs(centerOfCurPlayer.x-explosions[e].x) <= canvas.width + (0.5 * curPlayer.width)) {
-				if (Math.abs(centerOfCurPlayer.y-explosions[e].y) <= canvas.height + (0.5 * curPlayer.height)) {
-					newListToSend.push({
-						x:explosions[e].x,
-						y:explosions[e].y,
-						r:explosions[e].curRadius
-					});
+			if (Math.abs(centerOfCurPlayer.x - explosions[e].x) <= canvas.width + (0.5 * curPlayer.width)) {
+				if (Math.abs(centerOfCurPlayer.y - explosions[e].y) <= canvas.height + (0.5 * curPlayer.height)) {
+					newListToSend.push([
+						Math.round(explosions[e].x),
+						Math.round(explosions[e].y),
+						Math.round(explosions[e].curRadius)
+					]);
 				}
 			}
 		}
@@ -676,21 +693,28 @@ function sendBonusesList () {
 			}
 			if (Math.abs(centerOfCurPlayer.x-centerOfBonus.x) <= canvas.width + (0.5 * curPlayer.width)) {
 				if (Math.abs(centerOfCurPlayer.y-centerOfBonus.y) <= canvas.height + (0.5 * curPlayer.height)) {
-					newListToSend.push({
-						bonus:bonuses[b].bonus,
-						x:bonuses[b].x,
-						y:bonuses[b].y,
-						width:bonuses[b].width,
-						height:bonuses[b].height
-					});
+					// newListToSend.push({
+					// 	bonus:bonuses[b].bonus,
+					// 	x:bonuses[b].x,
+					// 	y:bonuses[b].y,
+					// 	width:bonuses[b].width,
+					// 	height:bonuses[b].height
+					// });
+					newListToSend.push([
+						bonuses[b].bonus,
+						bonuses[b].x,
+						bonuses[b].y,
+						bonuses[b].width,
+						bonuses[b].height
+					]);
 				}
 			}
 		}
 		io.sockets.connected[clients[c]].emit('send-bonuses-info', newListToSend);
 	}
 }
-function createNewPlayer(playerId,name) {
-	//Get color/team of player.
+function createNewPlayer(playerId, name) {
+	// Get color/team of player.
 	var color;
 	var team;
 	var colors = ['red','orange','purple','#e0d21a','#f586ff','green'];
@@ -713,54 +737,59 @@ function createNewPlayer(playerId,name) {
 	}
 
 	playerListOpen[playerId] = {
-		name:name.substr(0,18),
-		id:playerId,
-		color:color,
-		team:team,
-		score:0,
-		kills:0,
-		deaths:0
-	}
+		name: name.substr(0, 18),
+		id: playerId,
+		color: color,
+		team: team,
+		score: 0,
+		kills: 0,
+		deaths: 0
+	};
 	playerListSecure[playerId] = {
-		x:0,
-		y:0,
-		inputs:{
-			moveUp:false,
-			moveDown:false,
-			moveLeft:false,
-			moveRight:false,
-			mouseDown:false,
-			mousePos:{x:0,y:0}
+		x: 0,
+		y: 0,
+		inputs: {
+			moveUp: false,
+			moveDown: false,
+			moveLeft: false,
+			moveRight: false,
+			mouseDown: false,
+			mousePos: {x: 0, y: 0}
 		},
-		alive:false,
-		health:teams[team].defaultVars.health,
-		width:teams[team].defaultVars.size,
-		height:teams[team].defaultVars.size,
-		speed:teams[team].defaultVars.speed,
-		curWeapon:'rifle',
-		canAttack:true,
-		lastAttack:{
-			time:null,
-			weapon:null
+		alive: false,
+		health: teams[team].defaultVars.health,
+		width: teams[team].defaultVars.size,
+		height: teams[team].defaultVars.size,
+		speed: teams[team].defaultVars.speed,
+		curWeapon: 'rifle',
+		canAttack: true,
+		lastAttack: {
+			time: null,
+			weapon: null
 		},
-		isInvlun:false,
-		isJihad:false,
-		modifiers:{
-			speed:1,
-			damage:1
+		isInvlun: false,
+		isJihad: false,
+		modifiers: {
+			speed: 1,
+			damage: 1
 		},
-		bonuses:{
-			speed:{
-				present:false,
-				expireAt:0
+		bonuses: {
+			speed: {
+				present: false,
+				expireAt: 0
 			},
-			damage:{
-				present:false,
-				expireAt:0
+			damage: {
+				present: false,
+				expireAt: 0
 			}
 		}
-	}
-	io.emit('new-player',playerListOpen[playerId]);
+	};
+	io.emit('new-player', [
+		name.substr(0, 18),
+		playerId,
+		color,
+		team
+	]);
 	teams[team].numPlayers++;
 	playerRespawn(playerId);
 }
@@ -1191,10 +1220,10 @@ function update () {
 	var sendExplosions = explosions.length > 0;
 
 	for (var bt = 0; bt < bullets.length; bt++) {
-		//Bullet movements
-		bullets[bt].x+=bullets[bt].spdx;
-		bullets[bt].y+=bullets[bt].spdy;
-		bullets[bt].distanceTravelled += Math.abs(bullets[bt].spdx)+Math.abs(bullets[bt].spdy);
+		// Bullet movements
+		bullets[bt].x += bullets[bt].spdx;
+		bullets[bt].y += bullets[bt].spdy;
+		bullets[bt].distanceTravelled += Math.abs(bullets[bt].spdx) + Math.abs(bullets[bt].spdy);
 
 		for (var b = 0; b < bColBlocks.length; b++) {
 			if (bullets[bt].active) {
@@ -1206,26 +1235,27 @@ function update () {
 					spdx: bullets[bt].spdx,
 					spdy: bullets[bt].spdy
 				}, bColBlocks[b])) {
-					if (weaponsList[bullets[bt].weapon].attackType == 2) {
-							weaponsList[bullets[bt].weapon].onHit(bullets[bt],bullets[bt].source);
+					if (weaponsList[bullets[bt].weapon].attackType === 2) {
+						weaponsList[bullets[bt].weapon].onHit(bullets[bt], bullets[bt].source);
 					}
 					bullets[bt].active = false;
 				}
 			}
+						sendBonuses = true;
 		}
 		for (var e in extraColBlocks) {
 			for (var ec in extraColBlocks[e]) {
 				if (bullets[bt].active) {
 					if (testBulletCollision({
-						x:bullets[bt].x,
-						y:bullets[bt].y,
-						width:weaponsList[bullets[bt].weapon].bulletSize,
-						height:weaponsList[bullets[bt].weapon].bulletSize,
-						spdx:bullets[bt].spdx,
-						spdy:bullets[bt].spdy
-					},extraColBlocks[e][ec])) {
-						if (weaponsList[bullets[bt].weapon].attackType == 2) {
-								weaponsList[bullets[bt].weapon].onHit(bullets[bt],bullets[bt].source);
+						x: bullets[bt].x,
+						y: bullets[bt].y,
+						width: weaponsList[bullets[bt].weapon].bulletSize,
+						height: weaponsList[bullets[bt].weapon].bulletSize,
+						spdx: bullets[bt].spdx,
+						spdy: bullets[bt].spdy
+					}, extraColBlocks[e][ec])) {
+						if (weaponsList[bullets[bt].weapon].attackType === 2) {
+							weaponsList[bullets[bt].weapon].onHit(bullets[bt], bullets[bt].source);
 						}
 						bullets[bt].active = false;
 					}
@@ -1233,26 +1263,26 @@ function update () {
 			}
 		}
 		for (var pl in playerListSecure) {
-			if (playerCanDamagePlayer(bullets[bt].source,pl)) {
+			if (playerCanDamagePlayer(bullets[bt].source, pl)) {
 				if (bullets[bt].active) {
 					if (testBulletCollision({
-						x:bullets[bt].x,
-						y:bullets[bt].y,
-						width:weaponsList[bullets[bt].weapon].bulletSize,
-						height:weaponsList[bullets[bt].weapon].bulletSize,
-						spdx:bullets[bt].spdx,
-						spdy:bullets[bt].spdy
-					},{
-						x:playerListSecure[pl].x,
-						y:playerListSecure[pl].y,
-						width:playerListSecure[pl].width,
-						height:playerListSecure[pl].height
+						x: bullets[bt].x,
+						y: bullets[bt].y,
+						width: weaponsList[bullets[bt].weapon].bulletSize,
+						height: weaponsList[bullets[bt].weapon].bulletSize,
+						spdx: bullets[bt].spdx,
+						spdy: bullets[bt].spdy
+					}, {
+						x: playerListSecure[pl].x,
+						y: playerListSecure[pl].y,
+						width: playerListSecure[pl].width,
+						height: playerListSecure[pl].height
 					})) {
-						if (weaponsList[bullets[bt].weapon].attackType == 1) {
-							weaponsList[bullets[bt].weapon].onHit(bullets[bt],pl);
+						if (weaponsList[bullets[bt].weapon].attackType === 1) {
+							weaponsList[bullets[bt].weapon].onHit(bullets[bt], pl);
 						}
-						else if (weaponsList[bullets[bt].weapon].attackType == 2) {
-							weaponsList[bullets[bt].weapon].onHit(bullets[bt],bullets[bt].source);
+						else if (weaponsList[bullets[bt].weapon].attackType === 2) {
+							weaponsList[bullets[bt].weapon].onHit(bullets[bt], bullets[bt].source);
 						}
 						bullets[bt].active = false;
 					}
@@ -1268,12 +1298,12 @@ function update () {
 	for (var p in playerListSecure) {
 		var curPlayer = playerListSecure[p];
 		var oldPlayer = {
-			x:curPlayer.x,
-			y:curPlayer.y,
-			width:curPlayer.width,
-			height:curPlayer.height
+			x: curPlayer.x,
+			y: curPlayer.y,
+			width: curPlayer.width,
+			height: curPlayer.height
 		}
-		//Handle the bonuses
+		// Handle the bonuses
 		for (var b in curPlayer.bonuses) {
 			if (curPlayer.bonuses[b].present) {
 				if (Date.now() >= curPlayer.bonuses[b].expireAt) {
@@ -1282,37 +1312,38 @@ function update () {
 			}
 		}
 
-		//Only move player if he is alive
+		// Only move player if he is alive
 		if (curPlayer.alive) {
 			var speed = curPlayer.speed * curPlayer.modifiers.speed;
 			if ((curPlayer.inputs.moveRight || curPlayer.inputs.moveLeft) && (curPlayer.inputs.moveUp || curPlayer.inputs.moveDown)) {
-				speed = speed/Math.sqrt(2);
+				speed = speed / Math.sqrt(2);
 			}
-			//Collision test on x movement
-			curPlayer.x+=speed*curPlayer.inputs.moveRight;
-			curPlayer.x-=speed*curPlayer.inputs.moveLeft;
+			// Collision test on x movement
+			curPlayer.x += speed * curPlayer.inputs.moveRight;
+			curPlayer.x -= speed * curPlayer.inputs.moveLeft;
 
-			var checkPlayers1 = testCollisionPlayers(curPlayer,oldPlayer,p);
-			curPlayer.x=checkPlayers1.x;
-			var checkBlocks1 = testCollisionBlocks(curPlayer,oldPlayer);
-			curPlayer.x=checkBlocks1.x;
+			var checkPlayers1 = testCollisionPlayers(curPlayer, oldPlayer, p);
+			curPlayer.x = checkPlayers1.x;
+			var checkBlocks1 = testCollisionBlocks(curPlayer, oldPlayer);
+			curPlayer.x = checkBlocks1.x;
 
-			//Collision test on y movement
-			curPlayer.y-=speed*curPlayer.inputs.moveUp;
-			curPlayer.y+=speed*curPlayer.inputs.moveDown;
+			// Collision test on y movement
+			curPlayer.y -= speed * curPlayer.inputs.moveUp;
+			curPlayer.y += speed * curPlayer.inputs.moveDown;
 
-			var checkPlayers2 = testCollisionPlayers(curPlayer,oldPlayer,p);
-			var checkBlocks2 = testCollisionBlocks(curPlayer,oldPlayer);
-			curPlayer.x=checkPlayers1.x;
-			curPlayer.x=checkBlocks1.x;
-			curPlayer.y=checkPlayers2.y;
-			curPlayer.y=checkBlocks2.y;
+			var checkPlayers2 = testCollisionPlayers(curPlayer, oldPlayer, p);
+			var checkBlocks2 = testCollisionBlocks(curPlayer, oldPlayer);
+			curPlayer.x = checkPlayers1.x;
+			curPlayer.x = checkBlocks1.x;
+			curPlayer.y = checkPlayers2.y;
+			curPlayer.y = checkBlocks2.y;
 
 			for (var b in bonuses) {
 				if (bonuses[b].active) {
-					if (testCollision(curPlayer,bonuses[b])) {
+					if (testCollision(curPlayer, bonuses[b])) {
 						bonusesList[bonuses[b].bonus].activate(p);
 						bonuses[b].active = false;
+						sendBonuses = true;
 					};
 				}
 			}
@@ -1335,7 +1366,7 @@ function update () {
 	for (var e in explosions) {
 		if (explosions[e].curRadius >= explosions[e].fullRadius) {
 			explosions[e].active = false;
-		}else{
+		} else {
 			explosions[e].curRadius = explosions[e].startRadius + explosions[e].fullRadius*( (Date.now()-explosions[e].startTime) / (explosions[e].finishTime-explosions[e].startTime) );
 			if (explosions[e].curRadius > explosions[e].fullRadius) {
 				explosions[e].curRadius = explosions[e].fullRadius;
@@ -1343,18 +1374,18 @@ function update () {
 			// Check Collision
 			for (var p in playerListSecure) {
 
-				if (playerCanDamagePlayer(explosions[e].source,p)) {
+				if (playerCanDamagePlayer(explosions[e].source, p)) {
 					var cont = true;
 					for (var i = 0; i < explosions[e].playersHit.length; i++) {
-						if (explosions[e].playersHit[i] == p) {
+						if (explosions[e].playersHit[i] === p) {
 							cont = false;
 						}
 					}
 					if (cont) {
-						var explInfo = checkExplosionCollision(explosions[e],playerListSecure[p]);
+						var explInfo = checkExplosionCollision(explosions[e], playerListSecure[p]);
 						if (explInfo.hit) {
 							explosions[e].playersHit.push(p);
-							damagePlayer(explInfo.damage,explosions[e].source,explosions[e].weapon,p);
+							damagePlayer(explInfo.damage, explosions[e].source, explosions[e].weapon,p);
 						}
 					}
 				}
@@ -1362,7 +1393,7 @@ function update () {
 		}
 	}
 
-	//Delete the inactive bullets
+	// Delete the inactive bullets
 	var tempBullets = [];
 	for (var bl = 0; bl < bullets.length; bl++) {
 		if (bullets[bl].active) {
@@ -1370,7 +1401,7 @@ function update () {
 		}
 	}
 	bullets = tempBullets;
-	//Delete the inactive explosions
+	// Delete the inactive explosions
 	var tempExplosions = [];
 	for (var ex = 0; ex < explosions.length; ex++) {
 		if (explosions[ex].active) {
@@ -1394,7 +1425,7 @@ function update () {
 	sendPlayerlistSecure();
 }
 function logPlayers() {
-	setTimeout(function(){
+	setTimeout(function () {
 		if (playersSinceLastLog > 0) {
 			var d = new Date();
 			var db = new Date();
@@ -1414,44 +1445,47 @@ io.on('connection', function (socket) {
 		socket.emit('send-bonuses-info', bonuses);
 		createNewPlayer(userId, name);
 		clients.push(userId);
-		if (playersSinceLastLog === 0) logPlayers()
+		if (playersSinceLastLog === 0) logPlayers();
 		playersSinceLastLog++;
 	});
 	socket.on('request-map', function () {
 		io.emit('send-map', maps[currentMap].name, maps[currentMap].map, maps[currentMap].extrMap, maps[currentMap].bgcolor, gameMode);
-	})
+	});
 	socket.on('send-chat-message', function (msg) {
-		io.emit('get-chat-message', userId,msg);
+		io.emit('get-chat-message', userId, msg);
 	});
 	// Input
-	socket.on('move-left', function (data){
+	socket.on('move-left', function (data) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveLeft = data;
 		}
-	})
-	socket.on('move-right', function( data){
+	});
+	socket.on('move-right', function (data) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveRight = data;
 		}
-	})
+	});
 	socket.on('move-up', function (data) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveUp = data;
 		}
-	})
+	});
 	socket.on('move-down', function (data) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.moveDown = data;
 		}
-	})
+	});
 	socket.on('mouse-down', function (md) {
 		if (playerListSecure[userId]) {
 			playerListSecure[userId].inputs.mouseDown = md;
 		}
-	})
+	});
 	socket.on('new-mouse-pos', function (mpos) {
 		if (playerListSecure[userId]) {
-			playerListSecure[userId].inputs.mousePos = mpos;
+			playerListSecure[userId].inputs.mousePos = {
+				x: mpos[0],
+				y: mpos[1]
+			};
 		}
 	});
 	socket.on('swap-weapon', function (name) {

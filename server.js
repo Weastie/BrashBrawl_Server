@@ -83,11 +83,11 @@ var weaponsList = {
 		attackType:1,
 		id: 0
 	},
-	shotgun:{
-		onHit:function(bullet,playerHit) {
+	shotgun: {
+		onHit: function(bullet,playerHit) {
 			damagePlayer(9,bullet.source,'shotgun',playerHit);
 		},
-		shoot:function(shooter,cursor) {
+		shoot: function(shooter,cursor) {
 			var circle = {
 				x:canvas.width/2,
 				y:canvas.height/2,
@@ -601,21 +601,21 @@ function sendPlayerlistSecure () {
 						if (Math.abs(centerOfCurPlayer.y - centerOfCheckPlayer.y) <= canvas.height + (0.5 * playerListSecure[p].height + extra)) {
 							// User is in proximity, send
 							newListToSend[p] = [
-								Math.round(curPlayer.x),
-								Math.round(curPlayer.y),
-								curPlayer.width,
-								curPlayer.height,
-								curPlayer.health,
-								curPlayer.isJihad,
-								curPlayer.isInvuln,
+								Math.round(playerListSecure[p].x),
+								Math.round(playerListSecure[p].y),
+								playerListSecure[p].width,
+								playerListSecure[p].height,
+								playerListSecure[p].health,
+								playerListSecure[p].isJihad,
+								playerListSecure[p].isInvuln,
 								[ // Compress bonuses
-									curPlayer.bonuses.speed.present ? 1 : 0,
-									curPlayer.bonuses.damage.present ? 1 : 0
+									playerListSecure[p].bonuses.speed.present ? 1 : 0,
+									playerListSecure[p].bonuses.damage.present ? 1 : 0
 								],
 								weaponsList[playerListSecure[p].curWeapon].id,
 								[ // Compress mouse pos
-									curPlayer.inputs.mousePos.x,
-									curPlayer.inputs.mousePos.y
+									playerListSecure[p].inputs.mousePos.x,
+									playerListSecure[p].inputs.mousePos.y
 								]
 							];
 						}

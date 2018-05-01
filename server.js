@@ -793,7 +793,6 @@ function getNewSpawnPosition (playerId) {
 	var curSpawnpointArea = spawnPoints[team];
 	while (!ready) {
 		var curPoint = curSpawnpointArea[Math.floor(Math.random() * curSpawnpointArea.length)];
-		console.log(curPoint);
 		var boundingBox = {
 			x: maps[currentMap].extrMap[curPoint].x * blockSize,
 			y: maps[currentMap].extrMap[curPoint].y * blockSize,

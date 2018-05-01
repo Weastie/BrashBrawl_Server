@@ -1319,7 +1319,6 @@ function update () {
 					if (testCollision(curPlayer, bonuses[b])) {
 						bonusesList[bonuses[b].bonus].activate(p);
 						bonuses[b].active = false;
-						sendBonuses = true;
 					};
 				}
 			}
